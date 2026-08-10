@@ -1,0 +1,39 @@
+MACHINE LEARNING ENGINEER
+
+We are looking for a Machine Learning Engineer to design, develop,
+and deploy machine learning solutions.
+
+REQUIRED SKILLS
+
+Programming:
+Python, SQL
+
+Machine Learning:
+Machine Learning, Scikit-learn, Logistic Regression,
+Classification, Regression, Feature Engineering,
+Model Evaluation
+
+Data Science:
+Pandas, NumPy, Matplotlib, Data Analysis,
+Data Preprocessing, Data Visualization
+
+Natural Language Processing:
+Natural Language Processing, spaCy, NLTK,
+TF-IDF, Text Classification
+
+Web Development:
+Flask, REST API
+
+Tools:
+Git, GitHub
+
+RESPONSIBILITIES
+
+Develop and evaluate machine learning models.
+Perform data cleaning and preprocessing.
+Conduct exploratory data analysis.
+Build NLP and text classification systems.
+Develop REST APIs using Flask.
+Work with structured datasets using Pandas and NumPy.
+Use Git and GitHub for version control.
+Collaborate with engineering teams to deploy machine learning solutions.
