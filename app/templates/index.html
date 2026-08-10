@@ -286,47 +286,71 @@
 
                     <span>
                         Overall Score
-                    </span>
+                     </span>
 
                     <strong>
-                        {{ "%.2f"|format(
+                         {{ "%.2f"|format(
                             candidate.overall_score
-                        ) }}%
+                         ) }}%
                     </strong>
 
                 </div>
 
 
-                <div>
+        <div>
 
-                    <span>
-                        Skill Match
-                    </span>
+        <span>
+            Skill Match
+        </span>
 
-                    <strong>
-                        {{ "%.2f"|format(
-                            candidate.skill_match_score
-                        ) }}%
-                    </strong>
+        <strong>
+            {{ "%.2f"|format(
+                candidate.skill_match_score
+            ) }}%
+        </strong>
 
-                </div>
+        <small>
+            Weight:
+            {{ "%.0f"|format(
+                candidate.skill_weight * 100
+            ) }}%
+
+            · Contribution:
+            {{ "%.2f"|format(
+                candidate.skill_contribution
+            ) }}
+        </small>
+
+    </div>
 
 
-                <div>
+    <div>
 
-                    <span>
-                        Text Similarity
-                    </span>
+        <span>
+            Text Similarity
+        </span>
 
-                    <strong>
-                        {{ "%.2f"|format(
-                            candidate.text_similarity_score
-                        ) }}%
-                    </strong>
+        <strong>
+            {{ "%.2f"|format(
+                candidate.text_similarity_score
+            ) }}%
+        </strong>
 
-                </div>
+        <small>
+            Weight:
+            {{ "%.0f"|format(
+                candidate.text_weight * 100
+            ) }}%
 
-            </div>
+            · Contribution:
+            {{ "%.2f"|format(
+                candidate.text_contribution
+            ) }}
+        </small>
+
+    </div>
+
+</div>
 
 
             <!-- ==================================================

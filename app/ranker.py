@@ -150,13 +150,28 @@ def rank_resume(
         job_description,
     )
 
+    skill_weight = 0.70
+    text_weight = 0.30
+
+    skill_contribution = round(
+        skill_score * skill_weight,
+        2,
+    )
+
+    text_contribution = round(
+        text_score * text_weight,
+        2,
+    )
+
     overall_score = calculate_overall_score(
         skill_score,
         text_score,
+        skill_weight=skill_weight,
+        text_weight=text_weight,
     )
 
     recommendation = get_recommendation(
-    overall_score
+        overall_score
     )
 
     return {
@@ -168,6 +183,10 @@ def rank_resume(
         "text_similarity_score": text_score,
         "overall_score": overall_score,
         "recommendation": recommendation,
+        "skill_weight": skill_weight,
+        "text_weight": text_weight,
+        "skill_contribution": skill_contribution,
+        "text_contribution": text_contribution,
     }
 
 
