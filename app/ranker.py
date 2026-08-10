@@ -86,6 +86,38 @@ def calculate_overall_score(
 
     return round(score, 2)
 
+def get_recommendation(overall_score: float) -> str:
+    """
+    Convert the overall resume score into a
+    human-readable recommendation.
+
+    Parameters
+    ----------
+    overall_score : float
+        Overall resume score between 0 and 100.
+
+    Returns
+    -------
+    str
+        Recommendation category.
+    """
+
+    if not 0 <= overall_score <= 100:
+        raise ValueError(
+            "Overall score must be between 0 and 100."
+        )
+
+    if overall_score >= 80:
+        return "Highly Suitable"
+
+    if overall_score >= 60:
+        return "Suitable"
+
+    if overall_score >= 40:
+        return "Moderately Suitable"
+
+    return "Low Match"
+
 
 def rank_resume(
     resume_text: str,
@@ -123,6 +155,10 @@ def rank_resume(
         text_score,
     )
 
+    recommendation = get_recommendation(
+    overall_score
+    )
+
     return {
         "candidate_skills": candidate_skills,
         "required_skills": required_skills,
@@ -131,6 +167,7 @@ def rank_resume(
         "skill_match_score": skill_score,
         "text_similarity_score": text_score,
         "overall_score": overall_score,
+        "recommendation": recommendation,
     }
 
 

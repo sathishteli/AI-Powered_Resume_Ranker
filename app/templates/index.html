@@ -19,13 +19,14 @@
 
 </head>
 
-<body>
 
-<div class="container">
+<body>
 
     <header>
 
-        <h1>AI-Powered Resume Ranker</h1>
+        <h1>
+            AI-Powered Resume Ranker
+        </h1>
 
         <p>
             Rank resumes against a job description
@@ -45,6 +46,10 @@
 
     {% endif %}
 
+
+    <!-- ==================================================
+         INPUT SECTION
+         ================================================== -->
 
     <section class="card">
 
@@ -95,16 +100,22 @@
     </section>
 
 
+    <!-- ==================================================
+         RESULTS SECTION
+         ================================================== -->
+
     {% if results %}
 
     <section class="results">
 
         <h2>
-
             Ranking Results
-
         </h2>
 
+
+        <!-- ==================================================
+             RANKING TABLE
+             ================================================== -->
 
         <div class="table-wrapper">
 
@@ -123,6 +134,8 @@
                         <th>Text Similarity</th>
 
                         <th>Overall Score</th>
+
+                        <th>Recommendation</th>
 
                     </tr>
 
@@ -143,11 +156,13 @@
 
                         </td>
 
+
                         <td>
 
                             {{ candidate.candidate_name }}
 
                         </td>
+
 
                         <td>
 
@@ -157,6 +172,7 @@
 
                         </td>
 
+
                         <td>
 
                             {{ "%.2f"|format(
@@ -164,6 +180,7 @@
                             ) }}%
 
                         </td>
+
 
                         <td>
 
@@ -174,6 +191,28 @@
                                 ) }}%
 
                             </strong>
+
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="recommendation
+                                {% if candidate.recommendation == 'Highly Suitable' %}
+                                    recommendation-high
+                                {% elif candidate.recommendation == 'Suitable' %}
+                                    recommendation-good
+                                {% elif candidate.recommendation == 'Moderately Suitable' %}
+                                    recommendation-medium
+                                {% else %}
+                                    recommendation-low
+                                {% endif %}"
+                            >
+
+                                {{ candidate.recommendation }}
+
+                            </span>
 
                         </td>
 
@@ -188,23 +227,66 @@
         </div>
 
 
+        <!-- ==================================================
+             DETAILED CANDIDATE RESULTS
+             ================================================== -->
+
         {% for candidate in results %}
 
         <div class="candidate-card">
 
-            <h3>
+            <div class="candidate-header">
 
-                #{{ candidate.rank }}
-                {{ candidate.candidate_name }}
+                <div>
 
-            </h3>
+                    <h3>
 
+                        #{{ candidate.rank }}
+
+                        {{ candidate.candidate_name }}
+
+                    </h3>
+
+                    <p class="resume-file">
+
+                        {{ candidate.resume_file }}
+
+                    </p>
+
+                </div>
+
+
+                <span
+                    class="recommendation
+                    {% if candidate.recommendation == 'Highly Suitable' %}
+                        recommendation-high
+                    {% elif candidate.recommendation == 'Suitable' %}
+                        recommendation-good
+                    {% elif candidate.recommendation == 'Moderately Suitable' %}
+                        recommendation-medium
+                    {% else %}
+                        recommendation-low
+                    {% endif %}"
+                >
+
+                    {{ candidate.recommendation }}
+
+                </span>
+
+            </div>
+
+
+            <!-- ==================================================
+                 SCORE GRID
+                 ================================================== -->
 
             <div class="score-grid">
 
                 <div>
 
-                    <span>Overall Score</span>
+                    <span>
+                        Overall Score
+                    </span>
 
                     <strong>
                         {{ "%.2f"|format(
@@ -217,7 +299,9 @@
 
                 <div>
 
-                    <span>Skill Match</span>
+                    <span>
+                        Skill Match
+                    </span>
 
                     <strong>
                         {{ "%.2f"|format(
@@ -230,7 +314,9 @@
 
                 <div>
 
-                    <span>Text Similarity</span>
+                    <span>
+                        Text Similarity
+                    </span>
 
                     <strong>
                         {{ "%.2f"|format(
@@ -243,48 +329,70 @@
             </div>
 
 
+            <!-- ==================================================
+                 SKILLS
+                 ================================================== -->
+
             <div class="skills">
+
+                <!-- MATCHED SKILLS -->
 
                 <div>
 
-                    <h4>Matched Skills</h4>
+                    <h4>
+                        Matched Skills
+                    </h4>
+
 
                     {% if candidate.matched_skills %}
 
                     {% for skill in candidate.matched_skills %}
 
                     <span class="skill matched">
+
                         {{ skill }}
+
                     </span>
 
                     {% endfor %}
 
                     {% else %}
 
-                    <p>No matched skills.</p>
+                    <p>
+                        No matched skills.
+                    </p>
 
                     {% endif %}
 
                 </div>
 
 
+                <!-- MISSING SKILLS -->
+
                 <div>
 
-                    <h4>Missing Skills</h4>
+                    <h4>
+                        Missing Skills
+                    </h4>
+
 
                     {% if candidate.missing_skills %}
 
                     {% for skill in candidate.missing_skills %}
 
                     <span class="skill missing">
+
                         {{ skill }}
+
                     </span>
 
                     {% endfor %}
 
                     {% else %}
 
-                    <p>No missing skills.</p>
+                    <p>
+                        No missing skills.
+                    </p>
 
                     {% endif %}
 
@@ -300,8 +408,6 @@
 
     {% endif %}
 
-
-</div>
 
 </body>
 

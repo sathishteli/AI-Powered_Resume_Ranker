@@ -270,6 +270,11 @@ if __name__ == "__main__":
         )
 
         print(
+            f"Recommendation: "
+            f"{candidate['recommendation']}"
+        )
+
+        print(
             f"Skill Match: "
             f"{candidate['skill_match_score']:.2f}%"
         )
