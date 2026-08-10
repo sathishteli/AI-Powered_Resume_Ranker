@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI-Powered Resume Ranker</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+
+        <h1>AI-Powered Resume Ranker</h1>
+
+        <p>
+            Rank resumes against a job description
+            using NLP, skill matching and TF-IDF.
+        </p>
+
+    </header>
+
+
+    {% if error %}
+
+    <div class="error">
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+
+    <section class="card">
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+        >
+
+            <label for="job_description">
+
+                Job Description
+
+            </label>
+
+            <textarea
+                id="job_description"
+                name="job_description"
+                rows="12"
+                placeholder="Paste the job description here..."
+                required
+            >{{ job_description }}</textarea>
+
+
+            <label for="resumes">
+
+                Upload Resumes
+
+            </label>
+
+            <input
+                id="resumes"
+                type="file"
+                name="resumes"
+                accept=".pdf"
+                multiple
+                required
+            >
+
+
+            <button type="submit">
+
+                Rank Candidates
+
+            </button>
+
+        </form>
+
+    </section>
+
+
+    {% if results %}
+
+    <section class="results">
+
+        <h2>
+
+            Ranking Results
+
+        </h2>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Rank</th>
+
+                        <th>Candidate</th>
+
+                        <th>Skill Match</th>
+
+                        <th>Text Similarity</th>
+
+                        <th>Overall Score</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for candidate in results %}
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+                                #{{ candidate.rank }}
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            {{ candidate.candidate_name }}
+
+                        </td>
+
+                        <td>
+
+                            {{ "%.2f"|format(
+                                candidate.skill_match_score
+                            ) }}%
+
+                        </td>
+
+                        <td>
+
+                            {{ "%.2f"|format(
+                                candidate.text_similarity_score
+                            ) }}%
+
+                        </td>
+
+                        <td>
+
+                            <strong>
+
+                                {{ "%.2f"|format(
+                                    candidate.overall_score
+                                ) }}%
+
+                            </strong>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% for candidate in results %}
+
+        <div class="candidate-card">
+
+            <h3>
+
+                #{{ candidate.rank }}
+                {{ candidate.candidate_name }}
+
+            </h3>
+
+
+            <div class="score-grid">
+
+                <div>
+
+                    <span>Overall Score</span>
+
+                    <strong>
+                        {{ "%.2f"|format(
+                            candidate.overall_score
+                        ) }}%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>Skill Match</span>
+
+                    <strong>
+                        {{ "%.2f"|format(
+                            candidate.skill_match_score
+                        ) }}%
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>Text Similarity</span>
+
+                    <strong>
+                        {{ "%.2f"|format(
+                            candidate.text_similarity_score
+                        ) }}%
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="skills">
+
+                <div>
+
+                    <h4>Matched Skills</h4>
+
+                    {% if candidate.matched_skills %}
+
+                    {% for skill in candidate.matched_skills %}
+
+                    <span class="skill matched">
+                        {{ skill }}
+                    </span>
+
+                    {% endfor %}
+
+                    {% else %}
+
+                    <p>No matched skills.</p>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div>
+
+                    <h4>Missing Skills</h4>
+
+                    {% if candidate.missing_skills %}
+
+                    {% for skill in candidate.missing_skills %}
+
+                    <span class="skill missing">
+                        {{ skill }}
+                    </span>
+
+                    {% endfor %}
+
+                    {% else %}
+
+                    <p>No missing skills.</p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </section>
+
+    {% endif %}
+
+
+</div>
+
+</body>
+
+</html>

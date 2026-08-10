@@ -1,0 +1,188 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 40px auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    margin-bottom: 10px;
+}
+
+header p {
+    color: #666;
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin: 20px 0 8px;
+}
+
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: vertical;
+    font-size: 15px;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+}
+
+button {
+    margin-top: 25px;
+    padding: 13px 25px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+}
+
+.results {
+    margin-top: 35px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th,
+td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #f1f5f9;
+}
+
+.candidate-card {
+    background: white;
+    margin-top: 25px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+.candidate-card h3 {
+    margin-top: 0;
+}
+
+.score-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+}
+
+.score-grid div {
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.score-grid span {
+    display: block;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.score-grid strong {
+    font-size: 24px;
+}
+
+.skills {
+    margin-top: 25px;
+}
+
+.skills h4 {
+    margin-bottom: 10px;
+}
+
+.skill {
+    display: inline-block;
+    padding: 6px 10px;
+    margin: 4px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.matched {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.missing {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+@media (max-width: 700px) {
+
+    .container {
+        width: 95%;
+        margin: 20px auto;
+    }
+
+    .score-grid {
+        grid-template-columns: 1fr;
+    }
+
+    th,
+    td {
+        font-size: 13px;
+    }
+
+}
