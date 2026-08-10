@@ -7,7 +7,10 @@ Ranks multiple PDF resumes against a single job description.
 from pathlib import Path
 
 from app.ranker import rank_resume
-from app.resume_parser import extract_text_from_pdf
+from app.resume_parser import (
+    extract_candidate_name,
+    extract_text_from_pdf,
+)
 
 
 def rank_multiple_resumes(
@@ -38,7 +41,14 @@ def rank_multiple_resumes(
             f"Resume directory not found: {resumes_directory}"
         )
 
-    pdf_files = sorted(resume_dir.glob("*.pdf"))
+    if not resume_dir.is_dir():
+        raise NotADirectoryError(
+            f"Resume path is not a directory: {resumes_directory}"
+        )
+
+    pdf_files = sorted(
+        resume_dir.glob("*.pdf")
+    )
 
     if not pdf_files:
         return []
@@ -48,30 +58,70 @@ def rank_multiple_resumes(
     for pdf_file in pdf_files:
 
         try:
+            # ------------------------------------------
+            # Extract resume text
+            # ------------------------------------------
+
             resume_text = extract_text_from_pdf(
                 str(pdf_file)
             )
+
+            if not resume_text.strip():
+                raise ValueError(
+                    "No text could be extracted from PDF."
+                )
+
+            # ------------------------------------------
+            # Extract candidate name
+            # ------------------------------------------
+
+            candidate_name = extract_candidate_name(
+                resume_text
+            )
+
+            # ------------------------------------------
+            # Calculate resume ranking
+            # ------------------------------------------
 
             result = rank_resume(
                 resume_text,
                 job_description,
             )
 
-            result["candidate_name"] = pdf_file.stem
-            result["resume_file"] = pdf_file.name
+            # ------------------------------------------
+            # Store candidate information
+            # ------------------------------------------
+
+            result["candidate_name"] = (
+                candidate_name
+            )
+
+            result["resume_file"] = (
+                pdf_file.name
+            )
 
             ranked_candidates.append(result)
 
         except Exception as error:
 
             print(
-                f"Error processing {pdf_file.name}: {error}"
+                f"Error processing "
+                f"{pdf_file.name}: {error}"
             )
 
+    # ----------------------------------------------
+    # Sort by overall score
+    # ----------------------------------------------
+
     ranked_candidates.sort(
-        key=lambda candidate: candidate["overall_score"],
+        key=lambda candidate:
+        candidate["overall_score"],
         reverse=True,
     )
+
+    # ----------------------------------------------
+    # Assign ranking positions
+    # ----------------------------------------------
 
     for rank, candidate in enumerate(
         ranked_candidates,
@@ -90,29 +140,31 @@ def print_ranking_table(
     """
 
     if not ranked_candidates:
+
         print("No resumes found.")
+
         return
 
     print("\n")
-    print("=" * 90)
+    print("=" * 100)
     print("RESUME RANKING RESULTS")
-    print("=" * 90)
+    print("=" * 100)
 
     print(
         f"{'Rank':<8}"
-        f"{'Candidate':<25}"
+        f"{'Candidate':<30}"
         f"{'Skill Match':<18}"
         f"{'Text Similarity':<20}"
         f"{'Overall':<10}"
     )
 
-    print("-" * 90)
+    print("-" * 100)
 
     for candidate in ranked_candidates:
 
         print(
             f"{candidate['rank']:<8}"
-            f"{candidate['candidate_name']:<25}"
+            f"{candidate['candidate_name']:<30}"
             f"{candidate['skill_match_score']:.2f}%"
             f"{'':<12}"
             f"{candidate['text_similarity_score']:.2f}%"
@@ -120,7 +172,7 @@ def print_ranking_table(
             f"{candidate['overall_score']:.2f}%"
         )
 
-    print("=" * 90)
+    print("=" * 100)
 
 
 if __name__ == "__main__":
@@ -154,7 +206,14 @@ if __name__ == "__main__":
     job_description = (
         job_description_path
         .read_text(encoding="utf-8")
+        .strip()
     )
+
+    if not job_description:
+
+        raise ValueError(
+            "Job description file is empty."
+        )
 
     # --------------------------------------------------
     # Rank resumes
@@ -169,9 +228,9 @@ if __name__ == "__main__":
     # Display results
     # --------------------------------------------------
 
-    print("=" * 90)
+    print("=" * 100)
     print("AI-POWERED RESUME RANKER")
-    print("=" * 90)
+    print("=" * 100)
 
     print(
         f"\nJob Description: "
@@ -193,11 +252,16 @@ if __name__ == "__main__":
 
     for candidate in ranked_candidates:
 
-        print("\n" + "-" * 90)
+        print("\n" + "-" * 100)
 
         print(
             f"Rank #{candidate['rank']}: "
             f"{candidate['candidate_name']}"
+        )
+
+        print(
+            f"Resume File: "
+            f"{candidate['resume_file']}"
         )
 
         print(
@@ -223,6 +287,7 @@ if __name__ == "__main__":
                 print(f"- {skill}")
 
         else:
+
             print("- None")
 
         print("\nMissing Skills:")
@@ -233,4 +298,5 @@ if __name__ == "__main__":
                 print(f"- {skill}")
 
         else:
+
             print("- None")

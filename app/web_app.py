@@ -2,36 +2,53 @@
 Flask web application for the AI-Powered Resume Ranker.
 
 Allows users to:
+
 1. Enter a job description.
 2. Upload multiple PDF resumes.
-3. Rank candidates using NLP and TF-IDF.
-4. View matched and missing skills.
+3. Extract candidate names.
+4. Rank candidates using NLP and TF-IDF.
+5. View matched and missing skills.
 """
 
 import os
 import tempfile
 
-from flask import Flask, render_template, request
+from flask import (
+    Flask,
+    render_template,
+    request,
+)
 
 from app.ranker import rank_resume
-from app.resume_parser import extract_text_from_pdf
+
+from app.resume_parser import (
+    extract_candidate_name,
+    extract_text_from_pdf,
+)
 
 
 app = Flask(__name__)
 
 # Maximum request size: 10 MB
-app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = (
+    10 * 1024 * 1024
+)
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     """
-    Display the resume ranking interface and process submissions.
+    Display the resume ranking interface
+    and process submissions.
     """
 
     results = []
     error = None
     job_description = ""
+
+    # ==================================================
+    # PROCESS POST REQUEST
+    # ==================================================
 
     if request.method == "POST":
 
@@ -97,14 +114,23 @@ def index():
             if (
                 uploaded_file
                 and uploaded_file.filename
-                and uploaded_file.filename.lower().endswith(".pdf")
+                and uploaded_file.filename.lower().endswith(
+                    ".pdf"
+                )
             ):
-                valid_files.append(uploaded_file)
+
+                valid_files.append(
+                    uploaded_file
+                )
 
         print(
             "Valid PDF files:",
             len(valid_files),
         )
+
+        # --------------------------------------------------
+        # Validate uploaded files
+        # --------------------------------------------------
 
         if not valid_files:
 
@@ -122,9 +148,9 @@ def index():
                 job_description=job_description,
             )
 
-        # --------------------------------------------------
-        # Process each resume
-        # --------------------------------------------------
+        # ==================================================
+        # PROCESS EACH RESUME
+        # ==================================================
 
         for uploaded_file in valid_files:
 
@@ -138,7 +164,7 @@ def index():
                 )
 
                 # ------------------------------------------
-                # Create temporary PDF
+                # Create temporary PDF file
                 # ------------------------------------------
 
                 with tempfile.NamedTemporaryFile(
@@ -148,7 +174,9 @@ def index():
 
                     temp_path = temp_file.name
 
-                uploaded_file.save(temp_path)
+                uploaded_file.save(
+                    temp_path
+                )
 
                 # ------------------------------------------
                 # Verify uploaded file
@@ -198,6 +226,21 @@ def index():
                     )
 
                 # ------------------------------------------
+                # Extract candidate name
+                # ------------------------------------------
+
+                candidate_name = (
+                    extract_candidate_name(
+                        resume_text
+                    )
+                )
+
+                print(
+                    "Candidate name:",
+                    candidate_name,
+                )
+
+                # ------------------------------------------
                 # Calculate ranking
                 # ------------------------------------------
 
@@ -208,26 +251,28 @@ def index():
 
                 print(
                     "Skill score:",
-                    result["skill_match_score"],
+                    result[
+                        "skill_match_score"
+                    ],
                 )
 
                 print(
                     "Text score:",
-                    result["text_similarity_score"],
+                    result[
+                        "text_similarity_score"
+                    ],
                 )
 
                 print(
                     "Overall score:",
-                    result["overall_score"],
+                    result[
+                        "overall_score"
+                    ],
                 )
 
                 # ------------------------------------------
-                # Candidate information
+                # Store candidate information
                 # ------------------------------------------
-
-                candidate_name = os.path.splitext(
-                    uploaded_file.filename
-                )[0]
 
                 result["candidate_name"] = (
                     candidate_name
@@ -237,7 +282,9 @@ def index():
                     uploaded_file.filename
                 )
 
-                results.append(result)
+                results.append(
+                    result
+                )
 
             except Exception as exc:
 
@@ -259,19 +306,23 @@ def index():
             finally:
 
                 # ------------------------------------------
-                # Delete temporary file
+                # Remove temporary file
                 # ------------------------------------------
 
                 if (
                     temp_path
-                    and os.path.exists(temp_path)
+                    and os.path.exists(
+                        temp_path
+                    )
                 ):
 
-                    os.remove(temp_path)
+                    os.remove(
+                        temp_path
+                    )
 
-        # --------------------------------------------------
-        # Sort candidates
-        # --------------------------------------------------
+        # ==================================================
+        # SORT RESULTS
+        # ==================================================
 
         results.sort(
             key=lambda candidate:
@@ -279,9 +330,9 @@ def index():
             reverse=True,
         )
 
-        # --------------------------------------------------
-        # Add ranking numbers
-        # --------------------------------------------------
+        # ==================================================
+        # ASSIGN RANKING
+        # ==================================================
 
         for position, result in enumerate(
             results,
@@ -298,6 +349,10 @@ def index():
 
         print("=" * 70)
 
+    # ==================================================
+    # RENDER WEB PAGE
+    # ==================================================
+
     return render_template(
         "index.html",
         results=results,
@@ -305,6 +360,10 @@ def index():
         job_description=job_description,
     )
 
+
+# ======================================================
+# APPLICATION ENTRY POINT
+# ======================================================
 
 if __name__ == "__main__":
 
