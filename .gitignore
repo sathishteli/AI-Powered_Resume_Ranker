@@ -1,0 +1,28 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# VS Code
+.vscode/
+
+# Environment variables
+.env
+
+# Uploaded resumes
+uploads/*
+!uploads/.gitkeep
+
+# Trained models
+models/*.pkl
+models/*.joblib
+models/*.h5
+
+# OS files
+.DS_Store
+Thumbs.db
+
+tests/sample_resumes/*.pdf
