@@ -5,13 +5,17 @@ Creates a formatted PDF report from resume ranking results.
 """
 
 from datetime import datetime
+from html import escape
 from io import BytesIO
 from typing import Any
 
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import (
+    ParagraphStyle,
+    getSampleStyleSheet,
+)
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -110,6 +114,16 @@ def generate_pdf_report(
         leading=11,
     )
 
+    insight_style = ParagraphStyle(
+        "Insight",
+        parent=styles["BodyText"],
+        fontSize=8.5,
+        leading=12,
+        leftIndent=8,
+        firstLineIndent=-8,
+        spaceAfter=4,
+    )
+
     story = []
 
     # ==================================================
@@ -138,7 +152,9 @@ def generate_pdf_report(
         )
     )
 
-    story.append(Spacer(1, 6))
+    story.append(
+        Spacer(1, 6)
+    )
 
     # ==================================================
     # JOB DESCRIPTION
@@ -152,11 +168,7 @@ def generate_pdf_report(
     )
 
     job_description_html = (
-        job_description
-        .strip()
-        .replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
+        escape(job_description.strip())
         .replace("\n", "<br/>")
     )
 
@@ -167,7 +179,9 @@ def generate_pdf_report(
         )
     )
 
-    story.append(Spacer(1, 10))
+    story.append(
+        Spacer(1, 10)
+    )
 
     # ==================================================
     # SUMMARY
@@ -183,21 +197,33 @@ def generate_pdf_report(
     candidate_count = len(results)
 
     if results:
+
         average_score = sum(
             candidate["overall_score"]
             for candidate in results
         ) / candidate_count
+
     else:
+
         average_score = 0.0
 
     summary_data = [
-        ["Candidates Evaluated", str(candidate_count)],
-        ["Average Overall Score", f"{average_score:.2f}%"],
+        [
+            "Candidates Evaluated",
+            str(candidate_count),
+        ],
+        [
+            "Average Overall Score",
+            f"{average_score:.2f}%",
+        ],
     ]
 
     summary_table = Table(
         summary_data,
-        colWidths=[65 * mm, 45 * mm],
+        colWidths=[
+            65 * mm,
+            45 * mm,
+        ],
     )
 
     summary_table.setStyle(
@@ -258,7 +284,9 @@ def generate_pdf_report(
 
     story.append(summary_table)
 
-    story.append(Spacer(1, 12))
+    story.append(
+        Spacer(1, 12)
+    )
 
     # ==================================================
     # RANKING TABLE
@@ -283,6 +311,7 @@ def generate_pdf_report(
     ]
 
     for candidate in results:
+
         ranking_data.append(
             [
                 f"#{candidate['rank']}",
@@ -386,12 +415,14 @@ def generate_pdf_report(
 
     for candidate in results:
 
-        story.append(PageBreak())
+        story.append(
+            PageBreak()
+        )
 
         story.append(
             Paragraph(
                 f"Rank #{candidate['rank']}: "
-                f"{candidate['candidate_name']}",
+                f"{escape(str(candidate['candidate_name']))}",
                 candidate_heading_style,
             )
         )
@@ -399,7 +430,7 @@ def generate_pdf_report(
         story.append(
             Paragraph(
                 f"<b>Resume:</b> "
-                f"{candidate.get('resume_file', 'N/A')}",
+                f"{escape(str(candidate.get('resume_file', 'N/A')))}",
                 body_style,
             )
         )
@@ -407,12 +438,14 @@ def generate_pdf_report(
         story.append(
             Paragraph(
                 f"<b>Recommendation:</b> "
-                f"{candidate.get('recommendation', 'N/A')}",
+                f"{escape(str(candidate.get('recommendation', 'N/A')))}",
                 body_style,
             )
         )
 
-        story.append(Spacer(1, 6))
+        story.append(
+            Spacer(1, 6)
+        )
 
         # ------------------------------------------
         # Score table
@@ -520,6 +553,42 @@ def generate_pdf_report(
         story.append(score_table)
 
         # ------------------------------------------
+        # Candidate insights
+        # ------------------------------------------
+
+        story.append(
+            Paragraph(
+                "Why This Candidate?",
+                heading_style,
+            )
+        )
+
+        candidate_insights = candidate.get(
+            "candidate_insights",
+            [],
+        )
+
+        if candidate_insights:
+
+            for insight in candidate_insights:
+
+                story.append(
+                    Paragraph(
+                        f"• {escape(str(insight))}",
+                        insight_style,
+                    )
+                )
+
+        else:
+
+            story.append(
+                Paragraph(
+                    "No additional insights available.",
+                    small_style,
+                )
+            )
+
+        # ------------------------------------------
         # Matched skills
         # ------------------------------------------
 
@@ -538,7 +607,8 @@ def generate_pdf_report(
         if matched_skills:
 
             matched_text = ", ".join(
-                matched_skills
+                escape(str(skill))
+                for skill in matched_skills
             )
 
             story.append(
@@ -576,7 +646,8 @@ def generate_pdf_report(
         if missing_skills:
 
             missing_text = ", ".join(
-                missing_skills
+                escape(str(skill))
+                for skill in missing_skills
             )
 
             story.append(

@@ -50,11 +50,13 @@ def generate_hr_report(
     lines.append("")
     lines.append("SUMMARY")
     lines.append("-" * 80)
+
     lines.append(
         f"Candidates evaluated: {len(results)}"
     )
 
     if results:
+
         average_score = sum(
             candidate["overall_score"]
             for candidate in results
@@ -71,7 +73,9 @@ def generate_hr_report(
     lines.append("=" * 80)
 
     for candidate in results:
+
         lines.append("")
+
         lines.append(
             f"#{candidate['rank']} "
             f"{candidate['candidate_name']}"
@@ -135,6 +139,7 @@ def generate_hr_report(
         )
 
         if "skill_contribution" in candidate:
+
             lines.append(
                 f"Skill Contribution: "
                 f"{candidate['skill_contribution']:.2f}"
@@ -146,10 +151,38 @@ def generate_hr_report(
         )
 
         if "text_contribution" in candidate:
+
             lines.append(
                 f"Text Contribution: "
                 f"{candidate['text_contribution']:.2f}"
             )
+
+        # --------------------------------------------------
+        # Candidate insights
+        # --------------------------------------------------
+
+        lines.append("")
+        lines.append("WHY THIS CANDIDATE?")
+
+        candidate_insights = candidate.get(
+            "candidate_insights",
+            [],
+        )
+
+        if candidate_insights:
+
+            for insight in candidate_insights:
+                lines.append(f"- {insight}")
+
+        else:
+
+            lines.append(
+                "- No additional insights available."
+            )
+
+        # --------------------------------------------------
+        # Matched skills
+        # --------------------------------------------------
 
         lines.append("")
         lines.append("MATCHED SKILLS")
@@ -160,10 +193,17 @@ def generate_hr_report(
         )
 
         if matched_skills:
+
             for skill in matched_skills:
                 lines.append(f"- {skill}")
+
         else:
+
             lines.append("- None")
+
+        # --------------------------------------------------
+        # Missing skills
+        # --------------------------------------------------
 
         lines.append("")
         lines.append("MISSING SKILLS")
@@ -174,9 +214,12 @@ def generate_hr_report(
         )
 
         if missing_skills:
+
             for skill in missing_skills:
                 lines.append(f"- {skill}")
+
         else:
+
             lines.append("- None")
 
         lines.append("")

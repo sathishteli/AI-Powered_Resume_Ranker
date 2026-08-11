@@ -4,8 +4,9 @@ Resume ranking module.
 Combines:
 1. Skill matching
 2. TF-IDF cosine similarity
+3. Candidate insights
 
-to calculate an overall resume score.
+to calculate an overall resume score and explain the result.
 """
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -86,20 +87,17 @@ def calculate_overall_score(
 
     return round(score, 2)
 
+
 def get_recommendation(overall_score: float) -> str:
     """
     Convert the overall resume score into a
     human-readable recommendation.
 
-    Parameters
-    ----------
-    overall_score : float
-        Overall resume score between 0 and 100.
-
-    Returns
-    -------
-    str
-        Recommendation category.
+    Score thresholds:
+        >= 80: Highly Suitable
+        >= 60: Suitable
+        >= 40: Moderately Suitable
+        < 40: Low Match
     """
 
     if not 0 <= overall_score <= 100:
@@ -119,6 +117,141 @@ def get_recommendation(overall_score: float) -> str:
     return "Low Match"
 
 
+def generate_candidate_insights(
+    skill_match_score: float,
+    text_similarity_score: float,
+    matched_skills: list[str],
+    missing_skills: list[str],
+    recommendation: str,
+) -> list[str]:
+    """
+    Generate deterministic, human-readable explanations
+    for a candidate's ranking.
+
+    The insights are based only on the existing ranking
+    scores, matched skills, missing skills and recommendation.
+
+    Returns:
+        list[str]: Candidate ranking explanations.
+    """
+
+    insights = []
+
+    # --------------------------------------------------
+    # Skill match insight
+    # --------------------------------------------------
+
+    if skill_match_score >= 90:
+
+        insights.append(
+            f"Matches {skill_match_score:.0f}% of the "
+            "required skills."
+        )
+
+    elif skill_match_score >= 70:
+
+        insights.append(
+            f"Matches {skill_match_score:.0f}% of the "
+            "required skills."
+        )
+
+    elif skill_match_score >= 50:
+
+        insights.append(
+            f"Matches {skill_match_score:.0f}% of the "
+            "required skills, with several gaps."
+        )
+
+    else:
+
+        insights.append(
+            f"Matches only {skill_match_score:.0f}% of the "
+            "required skills."
+        )
+
+    # --------------------------------------------------
+    # Missing skills insight
+    # --------------------------------------------------
+
+    if not missing_skills:
+
+        insights.append(
+            "No required skills are missing."
+        )
+
+    elif len(missing_skills) == 1:
+
+        insights.append(
+            "Missing 1 required skill."
+        )
+
+    else:
+
+        insights.append(
+            f"Missing {len(missing_skills)} "
+            "required skills."
+        )
+
+    # --------------------------------------------------
+    # Text similarity insight
+    # --------------------------------------------------
+
+    if text_similarity_score >= 60:
+
+        insights.append(
+            "Strong textual relevance to the "
+            "job description."
+        )
+
+    elif text_similarity_score >= 40:
+
+        insights.append(
+            "Moderate textual relevance to the "
+            "job description."
+        )
+
+    else:
+
+        insights.append(
+            "Low textual relevance to the "
+            "job description."
+        )
+
+    # --------------------------------------------------
+    # Recommendation insight
+    # --------------------------------------------------
+
+    if recommendation == "Highly Suitable":
+
+        insights.append(
+            "Overall profile is highly suitable "
+            "for the role."
+        )
+
+    elif recommendation == "Suitable":
+
+        insights.append(
+            "Overall profile is suitable, "
+            "with some skill gaps."
+        )
+
+    elif recommendation == "Moderately Suitable":
+
+        insights.append(
+            "Overall profile shows moderate suitability "
+            "for the role."
+        )
+
+    else:
+
+        insights.append(
+            "Overall profile has significant gaps "
+            "for this role."
+        )
+
+    return insights
+
+
 def rank_resume(
     resume_text: str,
     job_description: str,
@@ -131,12 +264,19 @@ def rank_resume(
         2. Extract required job skills.
         3. Calculate skill match.
         4. Calculate TF-IDF similarity.
-        5. Calculate overall score.
+        5. Calculate score contributions.
+        6. Calculate overall score.
+        7. Generate recommendation.
+        8. Generate candidate insights.
     """
 
-    candidate_skills = extract_skills(resume_text)
+    candidate_skills = extract_skills(
+        resume_text
+    )
 
-    required_skills = extract_skills(job_description)
+    required_skills = extract_skills(
+        job_description
+    )
 
     skill_result = calculate_skill_match(
         candidate_skills,
@@ -174,6 +314,14 @@ def rank_resume(
         overall_score
     )
 
+    candidate_insights = generate_candidate_insights(
+        skill_match_score=skill_score,
+        text_similarity_score=text_score,
+        matched_skills=skill_result["matched_skills"],
+        missing_skills=skill_result["missing_skills"],
+        recommendation=recommendation,
+    )
+
     return {
         "candidate_skills": candidate_skills,
         "required_skills": required_skills,
@@ -183,6 +331,7 @@ def rank_resume(
         "text_similarity_score": text_score,
         "overall_score": overall_score,
         "recommendation": recommendation,
+        "candidate_insights": candidate_insights,
         "skill_weight": skill_weight,
         "text_weight": text_weight,
         "skill_contribution": skill_contribution,
@@ -196,9 +345,13 @@ if __name__ == "__main__":
     # Load sample resume
     # --------------------------------------------------
 
-    sample_pdf = "tests/sample_resumes/sample_resume.pdf"
+    sample_pdf = (
+        "tests/sample_resumes/sample_resume.pdf"
+    )
 
-    resume_text = extract_text_from_pdf(sample_pdf)
+    resume_text = extract_text_from_pdf(
+        sample_pdf
+    )
 
     # --------------------------------------------------
     # Sample Job Description
@@ -251,9 +404,12 @@ if __name__ == "__main__":
     print("\nMissing Skills:")
 
     if result["missing_skills"]:
+
         for skill in result["missing_skills"]:
             print(f"- {skill}")
+
     else:
+
         print("- None")
 
     print("\n" + "-" * 60)
@@ -272,5 +428,15 @@ if __name__ == "__main__":
         f"Overall Resume Score: "
         f"{result['overall_score']:.2f}%"
     )
+
+    print(
+        f"Recommendation: "
+        f"{result['recommendation']}"
+    )
+
+    print("\nCandidate Insights:")
+
+    for insight in result["candidate_insights"]:
+        print(f"- {insight}")
 
     print("-" * 60)
