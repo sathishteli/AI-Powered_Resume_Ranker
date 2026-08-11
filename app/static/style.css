@@ -299,6 +299,30 @@ th {
     margin-bottom: 24px;
 }
 
+.report-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pdf-button {
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+
+    .report-buttons {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .report-buttons .download-button {
+        width: 100%;
+    }
+}
+
 .results-subtitle {
     margin-top: 6px;
     margin-bottom: 0;

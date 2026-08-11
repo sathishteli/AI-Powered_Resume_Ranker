@@ -123,12 +123,23 @@
             </p>
         </div>
 
-        <a
-            href="{{ url_for('download_report') }}"
-            class="download-button"
-        >
-            📄 Download HR Report
-        </a>
+        <div class="report-buttons">
+
+    <a
+        href="{{ url_for('download_report') }}"
+        class="download-button"
+    >
+        📄 Download HR Report
+    </a>
+
+    <a
+        href="{{ url_for('download_pdf_report') }}"
+        class="download-button pdf-button"
+    >
+        📑 Download PDF Report
+    </a>
+
+</div>
 
     </div>
 

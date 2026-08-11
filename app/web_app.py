@@ -31,6 +31,7 @@ from app.resume_parser import (
 )
 
 from app.report_generator import generate_hr_report
+from app.pdf_report_generator import generate_pdf_report
 
 
 app = Flask(__name__)
@@ -422,6 +423,41 @@ def download_report():
         download_name="resume_ranking_report.txt",
     )
 
+@app.route("/download-pdf-report")
+def download_pdf_report():
+    """
+    Generate and download the latest HR report as a PDF.
+    """
+
+    results = session.get(
+        "ranking_results",
+        [],
+    )
+
+    job_description = session.get(
+        "job_description",
+        "",
+    )
+
+    if not results:
+
+        return (
+            "No ranking results available. "
+            "Please rank resumes first.",
+            400,
+        )
+
+    pdf_file = generate_pdf_report(
+        results,
+        job_description,
+    )
+
+    return send_file(
+        pdf_file,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="resume_ranking_report.pdf",
+    )
 
 # ======================================================
 # APPLICATION ENTRY POINT
