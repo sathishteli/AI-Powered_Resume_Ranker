@@ -2,12 +2,12 @@
 Flask web application for the AI-Powered Resume Ranker.
 
 Allows users to:
-
 1. Enter a job description.
 2. Upload multiple PDF resumes.
 3. Extract candidate names.
 4. Rank candidates using NLP and TF-IDF.
 5. View matched and missing skills.
+6. Download an HR evaluation report.
 """
 
 import os
@@ -17,7 +17,11 @@ from flask import (
     Flask,
     render_template,
     request,
+    session,
+    send_file,
 )
+
+from io import BytesIO
 
 from app.ranker import rank_resume
 
@@ -26,8 +30,13 @@ from app.resume_parser import (
     extract_text_from_pdf,
 )
 
+from app.report_generator import generate_hr_report
+
 
 app = Flask(__name__)
+
+# Required for storing ranking results between requests.
+app.secret_key = "ai-resume-ranker-development-key"
 
 # Maximum request size: 10 MB
 app.config["MAX_CONTENT_LENGTH"] = (
@@ -118,10 +127,7 @@ def index():
                     ".pdf"
                 )
             ):
-
-                valid_files.append(
-                    uploaded_file
-                )
+                valid_files.append(uploaded_file)
 
         print(
             "Valid PDF files:",
@@ -341,6 +347,15 @@ def index():
 
             result["rank"] = position
 
+        # ==================================================
+        # STORE RESULTS FOR REPORT DOWNLOAD
+        # ==================================================
+
+        session["ranking_results"] = results
+        session["job_description"] = (
+            job_description
+        )
+
         print(
             "\nSuccessfully processed:",
             len(results),
@@ -358,6 +373,53 @@ def index():
         results=results,
         error=error,
         job_description=job_description,
+    )
+
+
+# ======================================================
+# DOWNLOAD HR REPORT
+# ======================================================
+
+@app.route("/download-report")
+def download_report():
+    """
+    Generate and download the latest HR report.
+    """
+
+    results = session.get(
+        "ranking_results",
+        [],
+    )
+
+    job_description = session.get(
+        "job_description",
+        "",
+    )
+
+    if not results:
+
+        return (
+            "No ranking results available. "
+            "Please rank resumes first.",
+            400,
+        )
+
+    report = generate_hr_report(
+        results,
+        job_description,
+    )
+
+    report_file = BytesIO(
+        report.encode("utf-8")
+    )
+
+    report_file.seek(0)
+
+    return send_file(
+        report_file,
+        mimetype="text/plain",
+        as_attachment=True,
+        download_name="resume_ranking_report.txt",
     )
 
 

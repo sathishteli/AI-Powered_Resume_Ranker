@@ -108,9 +108,29 @@
 
     <section class="results">
 
-        <h2>
-            Ranking Results
-        </h2>
+        <section class="results">
+
+    <div class="results-header">
+
+        <div>
+            <h2>
+                Ranking Results
+            </h2>
+
+            <p class="results-subtitle">
+                Candidates ranked using skill matching
+                and TF-IDF relevance scoring.
+            </p>
+        </div>
+
+        <a
+            href="{{ url_for('download_report') }}"
+            class="download-button"
+        >
+            📄 Download HR Report
+        </a>
+
+    </div>
 
 
         <!-- ==================================================
