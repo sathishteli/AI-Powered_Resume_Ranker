@@ -14,6 +14,8 @@ Allows users to:
 import os
 import tempfile
 
+from io import BytesIO
+
 from flask import (
     Flask,
     render_template,
@@ -21,8 +23,6 @@ from flask import (
     session,
     send_file,
 )
-
-from io import BytesIO
 
 from app.ranker import rank_resume
 
@@ -35,27 +35,132 @@ from app.report_generator import generate_hr_report
 from app.pdf_report_generator import generate_pdf_report
 
 
-app = Flask(__name__)
+# ==================================================
+# APPLICATION CONFIGURATION
+# ==================================================
 
-# --------------------------------------------------
-# Application configuration
-# --------------------------------------------------
+def create_app() -> Flask:
+    """
+    Create and configure the Flask application.
 
-app.secret_key = os.environ.get(
-    "FLASK_SECRET_KEY",
-    "ai-resume-ranker-development-key",
-)
+    Environment variables:
 
-# Maximum total HTTP request size: 10 MB
-app.config["MAX_CONTENT_LENGTH"] = (
-    10 * 1024 * 1024
-)
+    FLASK_SECRET_KEY
+        Secret key used for Flask sessions.
 
-# Maximum number of resume files per request.
-MAX_RESUME_FILES = 10
+    FLASK_DEBUG
+        Enables Flask debug mode when set to:
+        1, true, yes, or on.
 
-# Maximum size of one individual PDF.
-MAX_RESUME_SIZE = 5 * 1024 * 1024
+    FLASK_HOST
+        Host used when starting the development server.
+
+    FLASK_PORT
+        Port used when starting the development server.
+
+    MAX_CONTENT_LENGTH_MB
+        Maximum total HTTP request size in MB.
+
+    MAX_RESUME_FILES
+        Maximum number of resumes per request.
+
+    MAX_RESUME_SIZE_MB
+        Maximum size of an individual resume in MB.
+    """
+
+    application = Flask(__name__)
+
+    # --------------------------------------------------
+    # Secret key
+    # --------------------------------------------------
+
+    application.secret_key = os.environ.get(
+        "FLASK_SECRET_KEY",
+        "ai-resume-ranker-development-key",
+    )
+
+    # --------------------------------------------------
+    # Upload limits
+    # --------------------------------------------------
+
+    max_content_length_mb = int(
+        os.environ.get(
+            "MAX_CONTENT_LENGTH_MB",
+            "10",
+        )
+    )
+
+    application.config["MAX_CONTENT_LENGTH"] = (
+        max_content_length_mb
+        * 1024
+        * 1024
+    )
+
+    # --------------------------------------------------
+    # Resume limits
+    # --------------------------------------------------
+
+    application.config["MAX_RESUME_FILES"] = int(
+        os.environ.get(
+            "MAX_RESUME_FILES",
+            "10",
+        )
+    )
+
+    application.config["MAX_RESUME_SIZE"] = (
+        int(
+            os.environ.get(
+                "MAX_RESUME_SIZE_MB",
+                "5",
+            )
+        )
+        * 1024
+        * 1024
+    )
+
+    # --------------------------------------------------
+    # Runtime configuration
+    # --------------------------------------------------
+
+    application.config["FLASK_HOST"] = (
+        os.environ.get(
+            "FLASK_HOST",
+            "127.0.0.1",
+        )
+    )
+
+    application.config["FLASK_PORT"] = int(
+        os.environ.get(
+            "FLASK_PORT",
+            "5000",
+        )
+    )
+
+    application.config["FLASK_DEBUG"] = (
+        os.environ.get(
+            "FLASK_DEBUG",
+            "true",
+        ).lower()
+        in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+    )
+
+    return application
+
+
+app = create_app()
+
+MAX_RESUME_FILES = app.config[
+    "MAX_RESUME_FILES"
+]
+
+MAX_RESUME_SIZE = app.config[
+    "MAX_RESUME_SIZE"
+]
 
 
 # ==================================================
@@ -68,12 +173,18 @@ def request_too_large(error):
     Handle uploads that exceed MAX_CONTENT_LENGTH.
     """
 
+    max_size_mb = (
+        app.config["MAX_CONTENT_LENGTH"]
+        // (1024 * 1024)
+    )
+
     return render_template(
         "index.html",
         results=[],
         error=(
             "The upload is too large. "
-            "Please keep the total upload size below 10 MB."
+            f"Please keep the total upload size "
+            f"below {max_size_mb} MB."
         ),
         job_description="",
     ), 413
@@ -138,7 +249,6 @@ def index():
                 job_description=job_description,
             )
 
-        # Prevent extremely large job descriptions.
         if len(job_description) > 100_000:
 
             error = (
@@ -210,7 +320,6 @@ def index():
         # --------------------------------------------------
 
         invalid_files = []
-
         valid_files = []
 
         for uploaded_file in uploaded_files:
@@ -333,9 +442,15 @@ def index():
 
                 if file_size > MAX_RESUME_SIZE:
 
+                    max_resume_mb = (
+                        MAX_RESUME_SIZE
+                        // (1024 * 1024)
+                    )
+
                     raise ValueError(
                         "PDF exceeds the maximum "
-                        "allowed size of 5 MB."
+                        f"allowed size of "
+                        f"{max_resume_mb} MB."
                     )
 
                 # ------------------------------------------
@@ -634,7 +749,7 @@ def download_pdf_report():
 if __name__ == "__main__":
 
     app.run(
-        debug=True,
-        host="127.0.0.1",
-        port=5000,
+        debug=app.config["FLASK_DEBUG"],
+        host=app.config["FLASK_HOST"],
+        port=app.config["FLASK_PORT"],
     )
