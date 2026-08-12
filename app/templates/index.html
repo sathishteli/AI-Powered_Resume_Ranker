@@ -10,6 +10,11 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="description"
+        content="AI-Powered Resume Ranker for comparing resumes against job descriptions."
+    >
+
     <title>AI-Powered Resume Ranker</title>
 
     <link
@@ -22,27 +27,53 @@
 
 <body>
 
-    <div class="container">
+    <main class="container">
 
-        <header>
+        <!-- ==================================================
+             PAGE HEADER
+             ================================================== -->
 
-            <h1>
-                AI-Powered Resume Ranker
-            </h1>
+        <header class="page-header">
 
-            <p>
-                Rank resumes against a job description
-                using NLP, skill matching and TF-IDF.
-            </p>
+            <div class="brand-mark">
+                AI
+            </div>
+
+            <div>
+
+                <h1>
+                    AI-Powered Resume Ranker
+                </h1>
+
+                <p>
+                    Evaluate resumes against a job description
+                    using skill matching and TF-IDF relevance scoring.
+                </p>
+
+            </div>
 
         </header>
 
 
+        <!-- ==================================================
+             ERROR MESSAGE
+             ================================================== -->
+
         {% if error %}
 
-        <div class="error">
+        <div
+            class="error"
+            role="alert"
+            aria-live="polite"
+        >
 
-            {{ error }}
+            <strong>
+                Unable to process request
+            </strong>
+
+            <p>
+                {{ error }}
+            </p>
 
         </div>
 
@@ -53,41 +84,134 @@
              INPUT SECTION
              ================================================== -->
 
-        <section class="card">
+        <section
+            class="card input-card"
+            aria-labelledby="input-heading"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-label">
+                        STEP 1
+                    </span>
+
+                    <h2 id="input-heading">
+                        Candidate Evaluation
+                    </h2>
+
+                    <p>
+                        Enter the role requirements and upload
+                        the resumes you want to evaluate.
+                    </p>
+
+                </div>
+
+            </div>
+
 
             <form
                 method="POST"
                 enctype="multipart/form-data"
+                class="ranking-form"
             >
 
-                <label for="job_description">
-                    Job Description
-                </label>
+                <!-- JOB DESCRIPTION -->
 
-                <textarea
-                    id="job_description"
-                    name="job_description"
-                    rows="12"
-                    placeholder="Paste the job description here..."
-                    required
-                >{{ job_description }}</textarea>
+                <div class="form-group">
+
+                    <label
+                        for="job_description"
+                    >
+                        Job Description
+                    </label>
+
+                    <span class="field-help">
+                        Include the responsibilities and required
+                        skills for the role.
+                    </span>
+
+                    <textarea
+                        id="job_description"
+                        name="job_description"
+                        rows="12"
+                        placeholder="Paste the job description here..."
+                        required
+                        aria-describedby="job-description-help"
+                    >{{ job_description }}</textarea>
+
+                    <span
+                        id="job-description-help"
+                        class="sr-only"
+                    >
+                        Enter the complete job description,
+                        including required skills and responsibilities.
+                    </span>
+
+                </div>
 
 
-                <label for="resumes">
-                    Upload Resumes
-                </label>
+                <!-- RESUME UPLOAD -->
 
-                <input
-                    id="resumes"
-                    type="file"
-                    name="resumes"
-                    accept=".pdf"
-                    multiple
-                    required
+                <div class="form-group">
+
+                    <label
+                        for="resumes"
+                    >
+                        Upload Resumes
+                    </label>
+
+                    <span class="field-help">
+                        PDF files only. Upload up to 10 resumes,
+                        with a maximum of 5 MB per resume.
+                    </span>
+
+                    <div class="upload-box">
+
+                        <input
+                            id="resumes"
+                            type="file"
+                            name="resumes"
+                            accept=".pdf,application/pdf"
+                            multiple
+                            required
+                            aria-describedby="resume-upload-help"
+                        >
+
+                        <label
+                            for="resumes"
+                            class="upload-label"
+                        >
+
+                            <span class="upload-title">
+                                Select PDF resumes
+                            </span>
+
+                            <span class="upload-subtitle">
+                                Multiple files supported
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                    <span
+                        id="resume-upload-help"
+                        class="field-help"
+                    >
+                        Only PDF resume files are accepted.
+                    </span>
+
+                </div>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="primary-button"
                 >
-
-
-                <button type="submit">
                     Rank Candidates
                 </button>
 
@@ -102,13 +226,22 @@
              RESULTS SECTION
              ================================================== -->
 
-        <section class="results">
+        <section
+            class="results"
+            aria-labelledby="results-heading"
+        >
+
+            <!-- RESULTS HEADER -->
 
             <div class="results-header">
 
                 <div>
 
-                    <h2>
+                    <span class="section-label">
+                        STEP 2
+                    </span>
+
+                    <h2 id="results-heading">
                         Ranking Results
                     </h2>
 
@@ -120,20 +253,25 @@
                 </div>
 
 
-                <div class="report-buttons">
+                <!-- REPORT BUTTONS -->
+
+                <div
+                    class="report-buttons"
+                    aria-label="Report downloads"
+                >
 
                     <a
                         href="{{ url_for('download_report') }}"
                         class="download-button"
                     >
-                        📄 Download HR Report
+                        Download HR Report
                     </a>
 
                     <a
                         href="{{ url_for('download_pdf_report') }}"
                         class="download-button pdf-button"
                     >
-                        📑 Download PDF Report
+                        Download PDF Report
                     </a>
 
                 </div>
@@ -145,25 +283,46 @@
                  RANKING TABLE
                  ================================================== -->
 
-            <div class="table-wrapper">
+            <div
+                class="table-wrapper"
+                role="region"
+                aria-label="Candidate ranking table"
+                tabindex="0"
+            >
 
                 <table>
+
+                    <caption class="sr-only">
+                        Candidate ranking results
+                    </caption>
 
                     <thead>
 
                         <tr>
 
-                            <th>Rank</th>
+                            <th scope="col">
+                                Rank
+                            </th>
 
-                            <th>Candidate</th>
+                            <th scope="col">
+                                Candidate
+                            </th>
 
-                            <th>Skill Match</th>
+                            <th scope="col">
+                                Skill Match
+                            </th>
 
-                            <th>Text Similarity</th>
+                            <th scope="col">
+                                Text Similarity
+                            </th>
 
-                            <th>Overall Score</th>
+                            <th scope="col">
+                                Overall Score
+                            </th>
 
-                            <th>Recommendation</th>
+                            <th scope="col">
+                                Recommendation
+                            </th>
 
                         </tr>
 
@@ -178,7 +337,7 @@
 
                             <td>
 
-                                <strong>
+                                <strong class="rank-number">
                                     #{{ candidate.rank }}
                                 </strong>
 
@@ -186,27 +345,47 @@
 
 
                             <td>
-                                {{ candidate.candidate_name }}
+
+                                <div class="table-candidate">
+
+                                    <strong>
+                                        {{ candidate.candidate_name }}
+                                    </strong>
+
+                                    <span>
+                                        {{ candidate.resume_file }}
+                                    </span>
+
+                                </div>
+
                             </td>
 
 
                             <td>
-                                {{ "%.2f"|format(
-                                    candidate.skill_match_score
-                                ) }}%
+
+                                <span class="score-value">
+                                    {{ "%.2f"|format(
+                                        candidate.skill_match_score
+                                    ) }}%
+                                </span>
+
                             </td>
 
 
                             <td>
-                                {{ "%.2f"|format(
-                                    candidate.text_similarity_score
-                                ) }}%
+
+                                <span class="score-value">
+                                    {{ "%.2f"|format(
+                                        candidate.text_similarity_score
+                                    ) }}%
+                                </span>
+
                             </td>
 
 
                             <td>
 
-                                <strong>
+                                <strong class="overall-value">
                                     {{ "%.2f"|format(
                                         candidate.overall_score
                                     ) }}%
@@ -249,192 +428,200 @@
                  DETAILED CANDIDATE RESULTS
                  ================================================== -->
 
-            {% for candidate in results %}
+            <div class="candidate-results">
 
-            <div class="candidate-card">
+                <div class="details-heading">
 
-                <div class="candidate-header">
-
-                    <div>
-
-                        <h3>
-                            #{{ candidate.rank }}
-                            {{ candidate.candidate_name }}
-                        </h3>
-
-                        <p class="resume-file">
-                            {{ candidate.resume_file }}
-                        </p>
-
-                    </div>
-
-
-                    <span
-                        class="recommendation
-                        {% if candidate.recommendation == 'Highly Suitable' %}
-                            recommendation-high
-                        {% elif candidate.recommendation == 'Suitable' %}
-                            recommendation-good
-                        {% elif candidate.recommendation == 'Moderately Suitable' %}
-                            recommendation-medium
-                        {% else %}
-                            recommendation-low
-                        {% endif %}"
-                    >
-                        {{ candidate.recommendation }}
+                    <span class="section-label">
+                        STEP 3
                     </span>
 
-                </div>
-
-
-                <!-- ==================================================
-                     SCORE GRID
-                     ================================================== -->
-
-                <div class="score-grid">
-
-                    <div>
-
-                        <span>
-                            Overall Score
-                        </span>
-
-                        <strong>
-                            {{ "%.2f"|format(
-                                candidate.overall_score
-                            ) }}%
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Skill Match
-                        </span>
-
-                        <strong>
-                            {{ "%.2f"|format(
-                                candidate.skill_match_score
-                            ) }}%
-                        </strong>
-
-                        <small>
-                            Weight:
-                            {{ "%.0f"|format(
-                                candidate.skill_weight * 100
-                            ) }}%
-                            · Contribution:
-                            {{ "%.2f"|format(
-                                candidate.skill_contribution
-                            ) }}
-                        </small>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Text Similarity
-                        </span>
-
-                        <strong>
-                            {{ "%.2f"|format(
-                                candidate.text_similarity_score
-                            ) }}%
-                        </strong>
-
-                        <small>
-                            Weight:
-                            {{ "%.0f"|format(
-                                candidate.text_weight * 100
-                            ) }}%
-                            · Contribution:
-                            {{ "%.2f"|format(
-                                candidate.text_contribution
-                            ) }}
-                        </small>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ==================================================
-                     CANDIDATE INSIGHTS
-                     ================================================== -->
-
-                <div class="candidate-insights">
-
-                    <div class="insights-header">
-
-                        <h4>
-                            Why This Candidate?
-                        </h4>
-
-                        <span class="insights-label">
-                            Ranking Insights
-                        </span>
-
-                    </div>
-
-
-                    {% if candidate.candidate_insights %}
-
-                    <ul>
-
-                        {% for insight in candidate.candidate_insights %}
-
-                        <li>
-                            {{ insight }}
-                        </li>
-
-                        {% endfor %}
-
-                    </ul>
-
-                    {% else %}
+                    <h2>
+                        Candidate Analysis
+                    </h2>
 
                     <p>
-                        No additional insights available.
+                        Review the score breakdown, ranking insights,
+                        matched skills, and missing skills for each candidate.
                     </p>
 
-                    {% endif %}
-
                 </div>
 
 
-                <!-- ==================================================
-                     SKILLS
-                     ================================================== -->
+                {% for candidate in results %}
 
-                <div class="skills">
+                <article
+                    class="candidate-card"
+                    aria-labelledby="candidate-{{ candidate.rank }}"
+                >
 
-                    <!-- MATCHED SKILLS -->
+                    <!-- CANDIDATE HEADER -->
 
-                    <div>
+                    <div class="candidate-header">
 
-                        <h4>
-                            Matched Skills
-                        </h4>
+                        <div class="candidate-identity">
+
+                            <div class="rank-badge">
+                                #{{ candidate.rank }}
+                            </div>
+
+                            <div>
+
+                                <h3
+                                    id="candidate-{{ candidate.rank }}"
+                                >
+                                    {{ candidate.candidate_name }}
+                                </h3>
+
+                                <p class="resume-file">
+                                    {{ candidate.resume_file }}
+                                </p>
+
+                            </div>
+
+                        </div>
 
 
-                        {% if candidate.matched_skills %}
-
-                        {% for skill in candidate.matched_skills %}
-
-                        <span class="skill matched">
-                            {{ skill }}
+                        <span
+                            class="recommendation
+                            {% if candidate.recommendation == 'Highly Suitable' %}
+                                recommendation-high
+                            {% elif candidate.recommendation == 'Suitable' %}
+                                recommendation-good
+                            {% elif candidate.recommendation == 'Moderately Suitable' %}
+                                recommendation-medium
+                            {% else %}
+                                recommendation-low
+                            {% endif %}"
+                        >
+                            {{ candidate.recommendation }}
                         </span>
 
-                        {% endfor %}
+                    </div>
+
+
+                    <!-- ==================================================
+                         SCORE GRID
+                         ================================================== -->
+
+                    <div class="score-grid">
+
+                        <div class="score-card score-card-overall">
+
+                            <span>
+                                Overall Score
+                            </span>
+
+                            <strong>
+                                {{ "%.2f"|format(
+                                    candidate.overall_score
+                                ) }}%
+                            </strong>
+
+                            <small>
+                                Final weighted score
+                            </small>
+
+                        </div>
+
+
+                        <div class="score-card">
+
+                            <span>
+                                Skill Match
+                            </span>
+
+                            <strong>
+                                {{ "%.2f"|format(
+                                    candidate.skill_match_score
+                                ) }}%
+                            </strong>
+
+                            <small>
+                                Weight:
+                                {{ "%.0f"|format(
+                                    candidate.skill_weight * 100
+                                ) }}%
+                                &middot;
+                                Contribution:
+                                {{ "%.2f"|format(
+                                    candidate.skill_contribution
+                                ) }}
+                            </small>
+
+                        </div>
+
+
+                        <div class="score-card">
+
+                            <span>
+                                Text Similarity
+                            </span>
+
+                            <strong>
+                                {{ "%.2f"|format(
+                                    candidate.text_similarity_score
+                                ) }}%
+                            </strong>
+
+                            <small>
+                                Weight:
+                                {{ "%.0f"|format(
+                                    candidate.text_weight * 100
+                                ) }}%
+                                &middot;
+                                Contribution:
+                                {{ "%.2f"|format(
+                                    candidate.text_contribution
+                                ) }}
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ==================================================
+                         CANDIDATE INSIGHTS
+                         ================================================== -->
+
+                    <div class="candidate-insights">
+
+                        <div class="insights-header">
+
+                            <div>
+
+                                <span class="insights-label">
+                                    Ranking Insights
+                                </span>
+
+                                <h4>
+                                    Why This Candidate?
+                                </h4>
+
+                            </div>
+
+                        </div>
+
+
+                        {% if candidate.candidate_insights %}
+
+                        <ul>
+
+                            {% for insight in candidate.candidate_insights %}
+
+                            <li>
+                                {{ insight }}
+                            </li>
+
+                            {% endfor %}
+
+                        </ul>
 
                         {% else %}
 
                         <p>
-                            No matched skills.
+                            No additional insights available.
                         </p>
 
                         {% endif %}
@@ -442,46 +629,123 @@
                     </div>
 
 
-                    <!-- MISSING SKILLS -->
+                    <!-- ==================================================
+                         SKILLS
+                         ================================================== -->
 
-                    <div>
+                    <div class="skills-grid">
 
-                        <h4>
-                            Missing Skills
-                        </h4>
+                        <!-- MATCHED SKILLS -->
+
+                        <div class="skills-section">
+
+                            <div class="skills-heading">
+
+                                <h4>
+                                    Matched Skills
+                                </h4>
+
+                                <span class="skill-count matched-count">
+                                    {{ candidate.matched_skills|length }}
+                                </span>
+
+                            </div>
 
 
-                        {% if candidate.missing_skills %}
+                            {% if candidate.matched_skills %}
 
-                        {% for skill in candidate.missing_skills %}
+                            <div class="skill-list">
 
-                        <span class="skill missing">
-                            {{ skill }}
-                        </span>
+                                {% for skill in candidate.matched_skills %}
 
-                        {% endfor %}
+                                <span class="skill matched">
+                                    {{ skill }}
+                                </span>
 
-                        {% else %}
+                                {% endfor %}
 
-                        <p>
-                            No missing skills.
-                        </p>
+                            </div>
 
-                        {% endif %}
+                            {% else %}
+
+                            <p class="empty-skills">
+                                No matched skills.
+                            </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- MISSING SKILLS -->
+
+                        <div class="skills-section">
+
+                            <div class="skills-heading">
+
+                                <h4>
+                                    Missing Skills
+                                </h4>
+
+                                <span class="skill-count missing-count">
+                                    {{ candidate.missing_skills|length }}
+                                </span>
+
+                            </div>
+
+
+                            {% if candidate.missing_skills %}
+
+                            <div class="skill-list">
+
+                                {% for skill in candidate.missing_skills %}
+
+                                <span class="skill missing">
+                                    {{ skill }}
+                                </span>
+
+                                {% endfor %}
+
+                            </div>
+
+                            {% else %}
+
+                            <p class="empty-skills">
+                                No missing skills.
+                            </p>
+
+                            {% endif %}
+
+                        </div>
 
                     </div>
 
-                </div>
+                </article>
+
+                {% endfor %}
 
             </div>
-
-            {% endfor %}
 
         </section>
 
         {% endif %}
 
-    </div>
+
+        <!-- ==================================================
+             FOOTER
+             ================================================== -->
+
+        <footer class="page-footer">
+
+            <p>
+                AI-Powered Resume Ranker
+                &middot;
+                Skill Matching + TF-IDF
+            </p>
+
+        </footer>
+
+    </main>
 
 </body>
 
