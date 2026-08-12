@@ -30,7 +30,9 @@ def extract_text_from_pdf(path: str) -> str:
         If the file does not exist.
 
     ValueError
-        If the file is not a PDF or is empty.
+        If the path is invalid, the file is not a PDF,
+        the file is empty, the PDF is corrupted, or no
+        text can be extracted.
     """
 
     pdf_path = Path(path)
@@ -40,6 +42,7 @@ def extract_text_from_pdf(path: str) -> str:
     # --------------------------------------------------
 
     if not pdf_path.exists():
+
         raise FileNotFoundError(
             f"PDF file not found: {path}"
         )
@@ -49,6 +52,7 @@ def extract_text_from_pdf(path: str) -> str:
     # --------------------------------------------------
 
     if not pdf_path.is_file():
+
         raise ValueError(
             f"Path is not a file: {path}"
         )
@@ -58,17 +62,46 @@ def extract_text_from_pdf(path: str) -> str:
     # --------------------------------------------------
 
     if pdf_path.suffix.lower() != ".pdf":
+
         raise ValueError(
-            f"Invalid file type. Expected a PDF file: {path}"
+            f"Invalid file type. "
+            f"Expected a PDF file: {path}"
         )
 
     # --------------------------------------------------
-    # Check that file is not empty
+    # Check file size
     # --------------------------------------------------
 
-    if pdf_path.stat().st_size == 0:
+    file_size = pdf_path.stat().st_size
+
+    if file_size == 0:
+
         raise ValueError(
             f"PDF file is empty: {path}"
+        )
+
+    # --------------------------------------------------
+    # Check PDF file signature
+    # --------------------------------------------------
+
+    try:
+
+        with pdf_path.open(
+            "rb"
+        ) as file:
+
+            header = file.read(5)
+
+    except OSError as error:
+
+        raise ValueError(
+            f"Unable to read PDF file: {path}"
+        ) from error
+
+    if header != b"%PDF-":
+
+        raise ValueError(
+            f"Invalid PDF file: {path}"
         )
 
     # --------------------------------------------------
@@ -79,14 +112,29 @@ def extract_text_from_pdf(path: str) -> str:
 
     try:
 
-        with pymupdf.open(pdf_path) as document:
+        with pymupdf.open(
+            pdf_path
+        ) as document:
+
+            if document.page_count == 0:
+
+                raise ValueError(
+                    f"PDF contains no pages: {path}"
+                )
 
             for page in document:
 
                 text = page.get_text()
 
                 if text:
-                    extracted_text.append(text)
+
+                    extracted_text.append(
+                        text
+                    )
+
+    except ValueError:
+
+        raise
 
     except Exception as error:
 
@@ -94,9 +142,26 @@ def extract_text_from_pdf(path: str) -> str:
             f"Unable to read PDF file: {path}"
         ) from error
 
-    return "\n".join(
+    # --------------------------------------------------
+    # Combine extracted text
+    # --------------------------------------------------
+
+    result = "\n".join(
         extracted_text
     ).strip()
+
+    # --------------------------------------------------
+    # Validate extracted text
+    # --------------------------------------------------
+
+    if not result:
+
+        raise ValueError(
+            "No text could be extracted "
+            f"from PDF: {path}"
+        )
+
+    return result
 
 
 def extract_candidate_name(
@@ -111,6 +176,7 @@ def extract_candidate_name(
     """
 
     if not resume_text.strip():
+
         return "Unknown Candidate"
 
     lines = [
@@ -120,6 +186,7 @@ def extract_candidate_name(
     ]
 
     if not lines:
+
         return "Unknown Candidate"
 
     ignored_headings = {

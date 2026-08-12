@@ -7,7 +7,8 @@ Allows users to:
 3. Extract candidate names.
 4. Rank candidates using NLP and TF-IDF.
 5. View matched and missing skills.
-6. Download an HR evaluation report.
+6. View candidate ranking insights.
+7. Download HR evaluation reports.
 """
 
 import os
@@ -36,14 +37,51 @@ from app.pdf_report_generator import generate_pdf_report
 
 app = Flask(__name__)
 
-# Required for storing ranking results between requests.
-app.secret_key = "ai-resume-ranker-development-key"
+# --------------------------------------------------
+# Application configuration
+# --------------------------------------------------
 
-# Maximum request size: 10 MB
+app.secret_key = os.environ.get(
+    "FLASK_SECRET_KEY",
+    "ai-resume-ranker-development-key",
+)
+
+# Maximum total HTTP request size: 10 MB
 app.config["MAX_CONTENT_LENGTH"] = (
     10 * 1024 * 1024
 )
 
+# Maximum number of resume files per request.
+MAX_RESUME_FILES = 10
+
+# Maximum size of one individual PDF.
+MAX_RESUME_SIZE = 5 * 1024 * 1024
+
+
+# ==================================================
+# ERROR HANDLERS
+# ==================================================
+
+@app.errorhandler(413)
+def request_too_large(error):
+    """
+    Handle uploads that exceed MAX_CONTENT_LENGTH.
+    """
+
+    return render_template(
+        "index.html",
+        results=[],
+        error=(
+            "The upload is too large. "
+            "Please keep the total upload size below 10 MB."
+        ),
+        job_description="",
+    ), 413
+
+
+# ==================================================
+# MAIN PAGE
+# ==================================================
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -100,6 +138,23 @@ def index():
                 job_description=job_description,
             )
 
+        # Prevent extremely large job descriptions.
+        if len(job_description) > 100_000:
+
+            error = (
+                "Job description is too long. "
+                "Please keep it below 100,000 characters."
+            )
+
+            print("ERROR:", error)
+
+            return render_template(
+                "index.html",
+                results=results,
+                error=error,
+                job_description=job_description,
+            )
+
         # --------------------------------------------------
         # Get uploaded files
         # --------------------------------------------------
@@ -114,20 +169,66 @@ def index():
         )
 
         # --------------------------------------------------
-        # Filter PDF files
+        # Validate number of files
         # --------------------------------------------------
+
+        if not uploaded_files:
+
+            error = (
+                "No resumes were uploaded. "
+                "Please select one or more PDF files."
+            )
+
+            print("ERROR:", error)
+
+            return render_template(
+                "index.html",
+                results=results,
+                error=error,
+                job_description=job_description,
+            )
+
+        if len(uploaded_files) > MAX_RESUME_FILES:
+
+            error = (
+                f"Too many resumes were uploaded. "
+                f"Please upload no more than "
+                f"{MAX_RESUME_FILES} PDF files at a time."
+            )
+
+            print("ERROR:", error)
+
+            return render_template(
+                "index.html",
+                results=results,
+                error=error,
+                job_description=job_description,
+            )
+
+        # --------------------------------------------------
+        # Validate file extensions
+        # --------------------------------------------------
+
+        invalid_files = []
 
         valid_files = []
 
         for uploaded_file in uploaded_files:
 
             if (
-                uploaded_file
-                and uploaded_file.filename
-                and uploaded_file.filename.lower().endswith(
-                    ".pdf"
-                )
+                not uploaded_file
+                or not uploaded_file.filename
             ):
+                continue
+
+            filename = uploaded_file.filename
+
+            if not filename.lower().endswith(".pdf"):
+
+                invalid_files.append(filename)
+
+            else:
+
                 valid_files.append(uploaded_file)
 
         print(
@@ -136,8 +237,28 @@ def index():
         )
 
         # --------------------------------------------------
-        # Validate uploaded files
+        # Reject non-PDF files
         # --------------------------------------------------
+
+        if invalid_files:
+
+            invalid_names = ", ".join(
+                invalid_files
+            )
+
+            error = (
+                "Only PDF resumes are supported. "
+                f"Invalid file(s): {invalid_names}"
+            )
+
+            print("ERROR:", error)
+
+            return render_template(
+                "index.html",
+                results=results,
+                error=error,
+                job_description=job_description,
+            )
 
         if not valid_files:
 
@@ -171,7 +292,7 @@ def index():
                 )
 
                 # ------------------------------------------
-                # Create temporary PDF file
+                # Create temporary PDF
                 # ------------------------------------------
 
                 with tempfile.NamedTemporaryFile(
@@ -208,6 +329,13 @@ def index():
 
                     raise ValueError(
                         "Uploaded PDF is empty."
+                    )
+
+                if file_size > MAX_RESUME_SIZE:
+
+                    raise ValueError(
+                        "PDF exceeds the maximum "
+                        "allowed size of 5 MB."
                     )
 
                 # ------------------------------------------
@@ -323,9 +451,19 @@ def index():
                     )
                 ):
 
-                    os.remove(
-                        temp_path
-                    )
+                    try:
+
+                        os.remove(
+                            temp_path
+                        )
+
+                    except OSError as cleanup_error:
+
+                        print(
+                            "WARNING: Could not remove "
+                            f"temporary file {temp_path}: "
+                            f"{cleanup_error}"
+                        )
 
         # ==================================================
         # SORT RESULTS
@@ -352,10 +490,34 @@ def index():
         # STORE RESULTS FOR REPORT DOWNLOAD
         # ==================================================
 
-        session["ranking_results"] = results
-        session["job_description"] = (
-            job_description
-        )
+        if results:
+
+            session["ranking_results"] = (
+                results
+            )
+
+            session["job_description"] = (
+                job_description
+            )
+
+        else:
+
+            session.pop(
+                "ranking_results",
+                None,
+            )
+
+            session.pop(
+                "job_description",
+                None,
+            )
+
+            if error is None:
+
+                error = (
+                    "None of the uploaded resumes "
+                    "could be processed successfully."
+                )
 
         print(
             "\nSuccessfully processed:",
@@ -423,6 +585,11 @@ def download_report():
         download_name="resume_ranking_report.txt",
     )
 
+
+# ======================================================
+# DOWNLOAD PDF HR REPORT
+# ======================================================
+
 @app.route("/download-pdf-report")
 def download_pdf_report():
     """
@@ -458,6 +625,7 @@ def download_pdf_report():
         as_attachment=True,
         download_name="resume_ranking_report.pdf",
     )
+
 
 # ======================================================
 # APPLICATION ENTRY POINT

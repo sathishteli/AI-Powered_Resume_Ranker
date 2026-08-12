@@ -7,6 +7,7 @@ Ranks multiple PDF resumes against a single job description.
 from pathlib import Path
 
 from app.ranker import rank_resume
+
 from app.resume_parser import (
     extract_candidate_name,
     extract_text_from_pdf,
@@ -32,32 +33,77 @@ def rank_multiple_resumes(
     -------
     list[dict]
         Ranked candidate results.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the resume directory does not exist.
+
+    NotADirectoryError
+        If the supplied resume path is not a directory.
+
+    ValueError
+        If the job description is empty.
     """
 
-    resume_dir = Path(resumes_directory)
+    # --------------------------------------------------
+    # Validate job description
+    # --------------------------------------------------
+
+    if not job_description or not job_description.strip():
+
+        raise ValueError(
+            "Job description cannot be empty."
+        )
+
+    # --------------------------------------------------
+    # Validate resume directory
+    # --------------------------------------------------
+
+    resume_dir = Path(
+        resumes_directory
+    )
 
     if not resume_dir.exists():
+
         raise FileNotFoundError(
-            f"Resume directory not found: {resumes_directory}"
+            f"Resume directory not found: "
+            f"{resumes_directory}"
         )
 
     if not resume_dir.is_dir():
+
         raise NotADirectoryError(
-            f"Resume path is not a directory: {resumes_directory}"
+            f"Resume path is not a directory: "
+            f"{resumes_directory}"
         )
+
+    # --------------------------------------------------
+    # Find PDF files
+    # --------------------------------------------------
 
     pdf_files = sorted(
         resume_dir.glob("*.pdf")
     )
 
     if not pdf_files:
+
         return []
 
     ranked_candidates = []
 
+    # --------------------------------------------------
+    # Process each resume independently
+    # --------------------------------------------------
+
     for pdf_file in pdf_files:
 
         try:
+
+            print(
+                f"Processing: {pdf_file.name}"
+            )
+
             # ------------------------------------------
             # Extract resume text
             # ------------------------------------------
@@ -67,20 +113,24 @@ def rank_multiple_resumes(
             )
 
             if not resume_text.strip():
+
                 raise ValueError(
-                    "No text could be extracted from PDF."
+                    "No text could be extracted "
+                    "from PDF."
                 )
 
             # ------------------------------------------
             # Extract candidate name
             # ------------------------------------------
 
-            candidate_name = extract_candidate_name(
-                resume_text
+            candidate_name = (
+                extract_candidate_name(
+                    resume_text
+                )
             )
 
             # ------------------------------------------
-            # Calculate resume ranking
+            # Calculate ranking
             # ------------------------------------------
 
             result = rank_resume(
@@ -100,7 +150,9 @@ def rank_multiple_resumes(
                 pdf_file.name
             )
 
-            ranked_candidates.append(result)
+            ranked_candidates.append(
+                result
+            )
 
         except Exception as error:
 
@@ -109,9 +161,12 @@ def rank_multiple_resumes(
                 f"{pdf_file.name}: {error}"
             )
 
-    # ----------------------------------------------
+            # Continue processing the remaining resumes.
+            continue
+
+    # --------------------------------------------------
     # Sort by overall score
-    # ----------------------------------------------
+    # --------------------------------------------------
 
     ranked_candidates.sort(
         key=lambda candidate:
@@ -119,14 +174,15 @@ def rank_multiple_resumes(
         reverse=True,
     )
 
-    # ----------------------------------------------
+    # --------------------------------------------------
     # Assign ranking positions
-    # ----------------------------------------------
+    # --------------------------------------------------
 
     for rank, candidate in enumerate(
         ranked_candidates,
         start=1,
     ):
+
         candidate["rank"] = rank
 
     return ranked_candidates
@@ -146,19 +202,20 @@ def print_ranking_table(
         return
 
     print("\n")
-    print("=" * 100)
+    print("=" * 110)
     print("RESUME RANKING RESULTS")
-    print("=" * 100)
+    print("=" * 110)
 
     print(
         f"{'Rank':<8}"
         f"{'Candidate':<30}"
         f"{'Skill Match':<18}"
         f"{'Text Similarity':<20}"
-        f"{'Overall':<10}"
+        f"{'Overall':<12}"
+        f"{'Recommendation':<20}"
     )
 
-    print("-" * 100)
+    print("-" * 110)
 
     for candidate in ranked_candidates:
 
@@ -170,9 +227,11 @@ def print_ranking_table(
             f"{candidate['text_similarity_score']:.2f}%"
             f"{'':<14}"
             f"{candidate['overall_score']:.2f}%"
+            f"{'':<6}"
+            f"{candidate['recommendation']:<20}"
         )
 
-    print("=" * 100)
+    print("=" * 110)
 
 
 if __name__ == "__main__":
@@ -228,9 +287,9 @@ if __name__ == "__main__":
     # Display results
     # --------------------------------------------------
 
-    print("=" * 100)
+    print("=" * 110)
     print("AI-POWERED RESUME RANKER")
-    print("=" * 100)
+    print("=" * 110)
 
     print(
         f"\nJob Description: "
@@ -252,7 +311,7 @@ if __name__ == "__main__":
 
     for candidate in ranked_candidates:
 
-        print("\n" + "-" * 100)
+        print("\n" + "-" * 110)
 
         print(
             f"Rank #{candidate['rank']}: "
@@ -284,23 +343,46 @@ if __name__ == "__main__":
             f"{candidate['text_similarity_score']:.2f}%"
         )
 
-        print("\nMatched Skills:")
+        print(
+            "\nWhy This Candidate:"
+        )
+
+        for insight in candidate.get(
+            "candidate_insights",
+            [],
+        ):
+
+            print(
+                f"- {insight}"
+            )
+
+        print(
+            "\nMatched Skills:"
+        )
 
         if candidate["matched_skills"]:
 
             for skill in candidate["matched_skills"]:
-                print(f"- {skill}")
+
+                print(
+                    f"- {skill}"
+                )
 
         else:
 
             print("- None")
 
-        print("\nMissing Skills:")
+        print(
+            "\nMissing Skills:"
+        )
 
         if candidate["missing_skills"]:
 
             for skill in candidate["missing_skills"]:
-                print(f"- {skill}")
+
+                print(
+                    f"- {skill}"
+                )
 
         else:
 
