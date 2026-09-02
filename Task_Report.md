@@ -1,4 +1,4 @@
-# AI-Powered Resume Ranker — Task Report
+
 
 ## 1. Project Title
 
@@ -118,7 +118,6 @@ The project repository is maintained using Git and the final validated working t
 
 ## 9. Future Scope
 
-Possible future improvements include:
 
 - OCR support for scanned resumes.
 - Transformer-based semantic similarity.
