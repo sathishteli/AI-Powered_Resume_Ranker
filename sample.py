@@ -17,3 +17,8 @@ print(queue)
 
 queue1 =[]
 
+if len(queue1) == 0:
+  print("Queue is empty")
+
+else:
+  print("Queue is not empty")
