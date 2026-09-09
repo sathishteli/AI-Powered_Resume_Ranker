@@ -304,4 +304,4 @@ The application follows a modular processing pipeline.
         │   Web UI    │ │ TXT Report │ │ PDF Report │
         └─────────────┘ └────────────┘ └────────────┘
 
-        ..
+        
