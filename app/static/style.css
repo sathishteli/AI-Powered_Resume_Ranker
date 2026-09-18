@@ -725,19 +725,6 @@ tbody tr:hover {
     border-radius: 11px;
     background: #f8fbff;
 }
-@media (min-width: 800px) {
-    .ranking-form {
-        display: grid;
-        grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
-        align-items: start;
-    }
-
-    .ranking-form .primary-button {
-        grid-column: 1 / -1;
-    }
-}
-
-
 .insights-header {
     margin-bottom: 12px;
 }
@@ -753,32 +740,10 @@ tbody tr:hover {
     display: inline-block;
     color: #1d4ed8;
     font-size: 11px;
-.upload-label::before {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    margin-bottom: 10px;
-    border-radius: 50%;
-    background: #ccfbf1;
-    color: #0f766e;
-    content: "PDF";
-    font-size: 10px;
-    font-weight: 850;
-    letter-spacing: 0.4px;
-}
     font-weight: 850;
     letter-spacing: 0.8px;
     text-transform: uppercase;
 }
-
-
-    border: 1px solid #0f766e;
-    margin: 0;
-    background: #0f766e;
-}
-
 
 .candidate-insights li {
     margin-bottom: 8px;
@@ -786,19 +751,17 @@ tbody tr:hover {
     line-height: 1.55;
 }
 
-
 .candidate-insights li:last-child {
-    background: #115e59;
+    margin-bottom: 0;
 }
-
 
 .candidate-insights p {
     margin: 0;
     color: #64748b;
-    color: #0f766e;
+}
 
 
-    background: #effcf9;
+/* ==================================================
    SKILLS
    ================================================== */
 
@@ -808,15 +771,25 @@ tbody tr:hover {
     gap: 20px;
     margin-top: 22px;
 }
-    background: #ccfbf1;
-    color: #0f766e;
+
 .skills-section {
     padding: 19px;
-    border-color: #99f6e4;
-    background: #f0fdfa;
+    border: 1px solid #dbe7e2;
+    border-radius: 11px;
     background: #ffffff;
 }
-    color: #0f766e;
+
+
+.skills-section:first-child {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+
+.skills-section:last-child {
+    border-color: #fecdd3;
+    background: #fff7f8;
+}
 
 .skills-heading {
     display: flex;
@@ -894,6 +867,22 @@ tbody tr:hover {
     margin: 0;
     color: #64748b;
     font-size: 13px;
+}
+
+
+@media (min-width: 800px) {
+
+    .ranking-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+        align-items: start;
+    }
+
+
+    .ranking-form .primary-button {
+        grid-column: 1 / -1;
+    }
+
 }
 
 
