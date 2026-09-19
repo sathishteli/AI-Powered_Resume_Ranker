@@ -1,38 +1,40 @@
 # AI-Powered Resume Ranker
 
-An AI-assisted resume screening application that compares uploaded PDF resumes against a job description and ranks candidates based on skill match and text similarity.
+A Flask-based resume screening application that compares uploaded PDF resumes against a job description, extracts candidate skills, and ranks applicants using a weighted combination of skill matching and text similarity.
 
-The project is a Flask-based web app designed to help recruiters shortlist candidates faster by extracting skills, comparing them to role requirements, and generating downloadable HR reports.
+The app is designed to help recruiters shortlist candidates faster by surfacing relevant experience, highlighting skill gaps, and generating downloadable HR reports.
 
 ## Overview
 
-This application allows a user to:
+This project allows a recruiter to:
 
-- paste a job description,
+- paste or type a job description,
 - upload multiple PDF resumes,
-- extract resume text and candidate names,
-- compare required skills with candidate skills,
-- calculate a weighted ranking score,
+- extract text from each resume,
+- detect a likely candidate name,
+- compare candidate skills to required skills,
+- score each resume with a weighted ranking model,
 - review matched and missing skills,
-- download a text or PDF report for recruitment review.
+- download a text or PDF summary report.
 
 ## Features
 
-- Multi-resume PDF upload
-- Job description validation
-- PDF text extraction
-- Candidate name detection
-- Skill extraction and matching
-- TF-IDF similarity scoring
-- Weighted overall ranking score
-- Recommendation labels
-- Candidate insights and explanations
-- Downloadable HR reports in TXT and PDF format
-- Flask web interface
+- Multi-resume PDF upload in a single request
+- Job description validation and length checks
+- PDF text extraction using PyMuPDF
+- Candidate name detection from resume content
+- Skill extraction with NLP heuristics and text normalization
+- Skill match scoring against required role skills
+- TF-IDF cosine similarity scoring against the job description
+- Weighted overall score calculation
+- Recommendation labels such as Highly Suitable, Suitable, and Low Match
+- Human-readable candidate insights
+- Downloadable HR reports in TXT and PDF formats
+- Flask web interface with server-side session storage
 
 ## Tech Stack
 
-- Python
+- Python 3
 - Flask
 - scikit-learn
 - spaCy
@@ -41,7 +43,7 @@ This application allows a user to:
 - pytest
 - HTML, CSS, and Jinja templates
 
-## Project Structure
+## Repository Structure
 
 ```text
 AI-Powered_Resume_Ranker/
@@ -65,32 +67,42 @@ AI-Powered_Resume_Ranker/
 ├── models/
 ├── resumes/
 ├── tests/
+│   ├── sample_resumes/
 │   ├── test_parser.py
-│   ├── test_web_app.py
-│   └── sample_resumes/
+│   └── test_web_app.py
 ├── uploads/
 └── app/static/
-    ├── style.css
     ├── css/
-    └── js/
+    ├── js/
+    └── style.css
 ```
 
 ## Installation
 
 1. Clone the repository.
-2. Create a virtual environment.
+2. Create and activate a virtual environment.
 3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run the App
+> The project includes the spaCy English model wheel in requirements.txt, so installation should resolve the core NLP dependencies in one step.
 
-Start the Flask application:
+## Running the App
+
+The app is created in [app/web_app.py](app/web_app.py), and the main Flask entry point is the `app` object defined there.
+
+Start the app with:
 
 ```bash
-python app.py
+python -m flask --app app.web_app run --debug
+```
+
+Or run it directly with:
+
+```bash
+python app/web_app.py
 ```
 
 Then open the app in a browser:
@@ -99,19 +111,19 @@ Then open the app in a browser:
 http://127.0.0.1:5000
 ```
 
-## How the Ranking Works
+## How Ranking Works
 
-The scoring pipeline is:
+Each uploaded resume goes through this flow:
 
-1. Extract text from each uploaded PDF.
-2. Detect the candidate name.
-3. Extract skills from the resume and the job description.
-4. Compare skills and compute a skill match percentage.
-5. Run TF-IDF cosine similarity between resume text and the job description.
-6. Combine the skill score and text similarity using a weighted formula.
-7. Sort candidates by total score and show recommendations.
+1. Extract text from the PDF.
+2. Detect the candidate name from the extracted text.
+3. Extract relevant skills from the resume and job description.
+4. Compute a skill-match percentage.
+5. Compute TF-IDF cosine similarity between the resume content and the job description.
+6. Combine both scores using a weighted formula.
+7. Sort candidates by overall score and assign a recommendation.
 
-Default scoring weights:
+Default weights:
 
 - Skill match: 70%
 - Text similarity: 30%
@@ -120,14 +132,14 @@ Default scoring weights:
 
 The app can generate:
 
-- a text HR summary report,
-- a PDF report for download.
+- a plain-text recruitment report,
+- a PDF HR evaluation report.
 
-These reports summarize ranking results, matched skills, missing skills, and recommendation status.
+The generated reports include ranking information, candidate fit status, matched skills, missing skills, and recommendation details.
 
-## Configuration
+## Environment Variables
 
-The app supports environment variables such as:
+The app reads configuration from environment variables such as:
 
 ```bash
 FLASK_SECRET_KEY
@@ -139,31 +151,37 @@ MAX_RESUME_FILES
 MAX_RESUME_SIZE_MB
 ```
 
+Default values are defined in [app/web_app.py](app/web_app.py).
+
 ## Running Tests
 
 ```bash
 pytest
 ```
 
+The test suite covers page loading, validation errors, report download behavior, and configuration defaults.
+
 ## Example Usage
 
 - Paste a job description such as "Python Machine Learning Engineer".
-- Upload several candidate resumes.
-- Review the ranking results.
-- Download the reports for recruiter screening.
+- Upload several candidate PDF resumes.
+- Review the ranking results in the web interface.
+- Download either the text or PDF HR report.
 
 ## Notes
 
-- Only PDF resumes are accepted.
-- Total upload size and file count are limited.
-- Temporary files are cleaned up after processing.
+- Only PDF files are accepted for upload.
+- The total upload size and number of uploaded resumes are limited.
+- Temporary files are removed after each resume is processed.
+- The app stores the latest ranking results in the Flask session for report downloads.
 
 ## Future Improvements
 
-Possible enhancements include:
+Potential enhancements include:
 
-- better parser support for more resume formats,
+- broader resume-format support beyond PDF,
 - stronger domain-specific skill extraction,
-- AI-based candidate scoring refinement,
-- deployment to a cloud app server,
-- support for structured job descriptions and candidate data exports.
+- better handling of edge-case resume layouts,
+- more advanced candidate scoring logic,
+- deployment to a cloud hosting environment,
+- export support for structured candidate data and recruiting workflows.
